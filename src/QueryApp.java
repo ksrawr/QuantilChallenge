@@ -9,7 +9,10 @@ public class QueryApp {
 		
 		Query query = new Query("src/log");
 		
-		
+		if(query.legalPath()) {
+			query.readDirectory();
+			query.findMatches();
+		}
 //		if(query.legalPath()) {
 //			while(true) {
 //				System.out.print(">QUERY ");

@@ -7,10 +7,6 @@ public class SimulatorAPP {
 
 		Simulator simulator = new Simulator("log");
 		
-		simulator.createFile();
-				
-		simulator.writeLogToFile(simulator.generateLogHeader());
-		
 		Calendar cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
 		cal.add(Calendar.MILLISECOND, 0);
 		cal.add(Calendar.SECOND, 0);
@@ -19,9 +15,9 @@ public class SimulatorAPP {
 		
 		for(int minutesInDay = 0; minutesInDay < 1440; minutesInDay++) {
 			simulator.createFile();
-			if(simulator.emptyFile()) {
-				simulator.writeLogToFile(simulator.generateLogHeader());
-			}
+//			if(simulator.emptyFile()) {
+//				simulator.writeLogToFile(simulator.generateLogHeader());
+//			}
 			simulator.writeLogToFile(simulator.generateLog(cal.getTimeInMillis()/1000L));
 			cal.add(Calendar.MINUTE, 1);
 		}
