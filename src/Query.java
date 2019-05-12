@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -15,11 +16,11 @@ public class Query {
 	
 	private String pathString;
 	private String ipAddress;
-	private int cpu_id;
+	private String cpu_id;
 	private String date_start;
-	private int time_start;
+	private String time_start;
 	private String date_end;
-	private int time_end;
+	private String time_end;
 	private Map<String, List<String>> fileLines  = new TreeMap<String, List<String>>();
 	
 	public Query(String pathString) {
@@ -54,35 +55,51 @@ public class Query {
 	}
 	
 	public void findMatches() {
+		System.out.println("CPU" + this.cpu_id + " usage on " + this.ipAddress + ":");
 		this.fileLines.forEach((String fileName, List<String> lines) -> {
-			System.out.println("Content of " + fileName + "is:");
 			lines.forEach((String line) -> {
-//				String contents[] = line.split(" ");
-//				long num = Long.parseLong(contents[0]);
-//				Date date = new java.util.Date(num);
-//				SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
-//				sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
-//				String formattedDate = sdf.format(date);
+				
 				String contents[] = line.split(" ");
-//				String timeStamp = this.convertTimeStamp(contents[0]);
 				long num = Long.parseLong(contents[0]);
-				Date date = new java.util.Date(num);
+				Date date = new Date(num * 1000);
 				SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss z");
 				sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
 				String formattedDate = sdf.format(date);
+				
 				String ipAddress = contents[1];
 				String cpuID = contents[2];
 				String cpuUsage = contents[3];
-				System.out.println(contents[0]);
-				System.out.println(formattedDate);
-				System.out.println(ipAddress);
-				System.out.println(cpuID);
-				System.out.println(cpuUsage);
-//				if(timeStamp === this.date_end) 
-//				System.out.println(line);
+				
+				String fdContents[] = formattedDate.split(" ");
+				SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd");
+				SimpleDateFormat sdf3 = new SimpleDateFormat("HH:mm");
+				
+				try {
+					Date dateAfter = sdf2.parse(this.date_start);
+					Date dateBefore = sdf2.parse(this.date_end);
+					Date fileDate = sdf2.parse(fdContents[0]);
+
+					Date timeStart = sdf3.parse(this.time_start);
+					Date timeEnd = sdf3.parse(this.time_end);
+					Date fileTime = sdf3.parse(fdContents[1]);
+					
+					if(ipAddress.equals(this.ipAddress) && cpuID.equals(this.cpu_id)) {
+						if(fileDate.equals(dateAfter) && fileDate.equals(dateBefore)) {
+							if(fileTime.equals(timeStart)) {
+								System.out.print("(" + fdContents[0] + " " + fdContents[1] + " " + cpuUsage + "%), ");
+							} else if(fileTime.after(timeStart)) {
+								System.out.print("(" + fdContents[0] + " " + fdContents[1] + " " + cpuUsage + "%), ");
+							} else if(fileTime.before(timeEnd)) {
+								System.out.print("(" + fdContents[0] + " " + fdContents[1] + " " + cpuUsage + "%), ");
+							}
+						}
+					} 
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
 			});
-			System.out.println("————————————————————————————————");
 		});
+		System.out.print("\n");
 	}
 	
 	public String convertTimeStamp(String time) {
@@ -101,21 +118,16 @@ public class Query {
 	}
 	
 	public void setCPUID(String s) {
-		int id = Integer.parseInt(s);
-		this.cpu_id = id;
+		this.cpu_id = s;
 	}
 	
 	public void setTimeStart(String date, String time) {
 		this.date_start = date;
-		String temp[] = time.split(":");
-		String number = temp[0] + temp[1];
-		this.time_start = Integer.parseInt(number);
+		this.time_start = time;
 	}
 	
 	public void setTimeEnd(String date, String time) {
 		this.date_end = date;
-		String temp[] = time.split(":");
-		String number = temp[0] + temp[1];
-		this.time_end = Integer.parseInt(number);
+		this.time_end = time;
 	}
 }
